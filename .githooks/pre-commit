@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Blocks commits that add/modify .mat files larger than MAX_MAT_SIZE_MB.
+# Enable with: git config core.hooksPath .githooks
+
+MAX_MAT_SIZE_MB=50
+MAX_MAT_SIZE_BYTES=$((MAX_MAT_SIZE_MB * 1024 * 1024))
+
+offenders=""
+
+while IFS= read -r -d '' file; do
+    case "$file" in
+        *.mat)
+            size=$(git cat-file -s ":$file" 2>/dev/null)
+            if [ -n "$size" ] && [ "$size" -gt "$MAX_MAT_SIZE_BYTES" ]; then
+                size_mb=$(( (size + 1048575) / 1048576 ))
+                offenders="${offenders}  ${file} (${size_mb}MB)\n"
+            fi
+            ;;
+    esac
+done < <(git diff --cached --name-only --diff-filter=ACM -z)
+
+if [ -n "$offenders" ]; then
+    echo "error: refusing to commit .mat file(s) larger than ${MAX_MAT_SIZE_MB}MB:" >&2
+    printf "%b" "$offenders" >&2
+    echo "Use Git LFS or an external download link for large data files instead." >&2
+    exit 1
+fi
+
+exit 0
