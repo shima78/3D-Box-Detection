@@ -34,6 +34,10 @@ It uses RANSAC-based plane fitting, mask refinement, and simple geometric measur
    ```
 3. Place your `.mat` files inside the `boxdetect/` directory.  
 4. The `outputs/` directory will be created automatically when you run the pipeline.
+5. (Optional) Enable the repo's pre-commit hook, which blocks commits containing `.mat` files larger than 50MB:
+   ```bash
+   git config core.hooksPath .githooks
+   ```
 
 ---
 
